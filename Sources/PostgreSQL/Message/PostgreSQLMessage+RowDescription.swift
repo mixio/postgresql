@@ -1,3 +1,5 @@
+import JJTools
+
 extension PostgreSQLMessage {
     /// Identifies the message as a row description.
     struct RowDescription {
@@ -74,17 +76,24 @@ extension PostgreSQLMessage.RowDescription {
     /// Parses a `PostgreSQLDataRow` using the metadata from this row description.
     /// Important to pass formatCodes in since the format codes in the field are likely not correct (if from a describe request)
     func parse(data: PostgreSQLMessage.DataRow, formatCodes: [PostgreSQLMessage.FormatCode]) throws -> [PostgreSQLColumn: PostgreSQLData] {
-        return try .init(uniqueKeysWithValues: fields.enumerated().map { (i, field) in
+        var row: [PostgreSQLColumn: PostgreSQLData] = [:]
+        row.reserveCapacity(fields.count)
+        for (i, field) in fields.enumerated() {
             let formatCode: PostgreSQLMessage.FormatCode
             switch formatCodes.count {
             case 0: formatCode = .text
             case 1: formatCode = formatCodes[0]
             default: formatCode = formatCodes[i]
             }
-            let key = PostgreSQLColumn(tableOID: field.tableObjectID, name: field.name)
+            var col = PostgreSQLColumn(tableOID: field.tableObjectID, name: field.name)
+            while row[col] != nil {
+                col.occurrence = col.occurrence + 1
+            }
             let value = try data.columns[i].parse(dataType: field.dataType, format: formatCode)
-            return (key, value)
-        })
+            row[col] = value
+        }
+        jjprint(row)
+        return row
     }
 }
 

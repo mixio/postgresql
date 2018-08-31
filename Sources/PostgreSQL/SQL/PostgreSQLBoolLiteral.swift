@@ -17,7 +17,7 @@ public enum PostgreSQLBoolLiteral: SQLBoolLiteral {
     case _false
     
     /// See `SQLSerializable`.
-    public func serialize(_ binds: inout [Encodable]) -> String {
+    public func serialize(_ binds: inout [Encodable], aliases: SQLTableAliases?) -> String {
         switch self {
         case ._true: return "TRUE"
         case ._false: return "FALSE"

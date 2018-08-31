@@ -65,7 +65,7 @@ public struct PostgreSQLAlterTable: SQLAlterTable {
         }
         
         /// See `SQLSerializable`.
-        public func serialize(_ binds: inout [Encodable]) -> String {
+        public func serialize(_ binds: inout [Encodable], aliases: SQLTableAliases?) -> String {
             var sql: [String] = []
             sql.append("DROP")
             switch kind {
@@ -101,7 +101,7 @@ public struct PostgreSQLAlterTable: SQLAlterTable {
     }
     
     /// See `SQLSerializable`.
-    public func serialize(_ binds: inout [Encodable]) -> String {
+    public func serialize(_ binds: inout [Encodable], aliases: SQLTableAliases?) -> String {
         var sql: [String] = []
         sql.append("ALTER TABLE")
         sql.append(table.serialize(&binds))

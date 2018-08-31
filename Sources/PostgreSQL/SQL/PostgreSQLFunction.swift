@@ -15,7 +15,7 @@ public struct PostgreSQLFunction: SQLFunction {
     public let arguments: [Argument]
     
     /// See `SQLSerializable`.
-    public func serialize(_ binds: inout [Encodable]) -> String {
+    public func serialize(_ binds: inout [Encodable], aliases: SQLTableAliases?) -> String {
         return name + "(" + arguments.map { $0.serialize(&binds) }.joined(separator: ", ") + ")"
     }
 }
