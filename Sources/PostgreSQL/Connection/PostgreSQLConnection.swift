@@ -2,7 +2,7 @@
 public final class PostgreSQLConnection: DatabaseConnection, BasicWorker, DatabaseQueryable, SQLConnection {
     /// See `DatabaseConnection`.
     public typealias Database = PostgreSQLDatabase
-    
+
     /// See `BasicWorker`.
     public var eventLoop: EventLoop {
         return channel.eventLoop
@@ -16,13 +16,13 @@ public final class PostgreSQLConnection: DatabaseConnection, BasicWorker, Databa
 
     /// See `Extendable`.
     public var extend: Extend
-    
+
     /// Handles enqueued PostgreSQL commands and responses.
     internal let queue: QueueHandler<PostgreSQLMessage, PostgreSQLMessage>
-    
+
     /// The channel
     internal let channel: Channel
-    
+
     /// Previously fetched table name cache
     internal var tableNameCache: TableNameCache?
 
@@ -46,7 +46,7 @@ public final class PostgreSQLConnection: DatabaseConnection, BasicWorker, Databa
             }
         }
     }
-    
+
     /// See `SQLConnection`.
     public func decode<D>(_ type: D.Type, from row: [PostgreSQLColumn : PostgreSQLData], table: GenericSQLTableIdentifier<PostgreSQLIdentifier>?) throws -> D where D : Decodable {
         if let table = table {
@@ -58,8 +58,23 @@ public final class PostgreSQLConnection: DatabaseConnection, BasicWorker, Databa
             return try PostgreSQLRowDecoder().decode(D.self, from: row)
         }
     }
-    
-    
+
+    /// See `SQLConnection`.
+    public func decode<D>(_ type: D.Type, from row: [PostgreSQLColumn : PostgreSQLData], table: GenericSQLTableIdentifier<PostgreSQLIdentifier>?, occurrence: UInt = 1) throws -> D where D : Decodable {
+        if let table = table {
+            guard let cache = tableNameCache else {
+                throw PostgreSQLError(identifier: "tableNameCache", reason: "Cannot decode row from specific table without table name cache.")
+            }
+            guard let tableOID = cache.tableOID(name: table.identifier.string) else {
+                throw PostgreSQLError(identifier: "tableOID", reason: "Invalid table: \(String(describing: table)).")
+            }
+            let requested_row = row.filter { $0.key.tableOID == tableOID && $0.key.occurrence == occurrence }
+            return try PostgreSQLRowDecoder().decode(D.self, from: requested_row, tableOID: cache.tableOID(name: table.identifier.string) ?? 0)
+        } else {
+            return try PostgreSQLRowDecoder().decode(D.self, from: row)
+        }
+    }
+
     /// Sends `PostgreSQLMessage` to the server.
     func send(_ message: [PostgreSQLMessage]) -> Future<[PostgreSQLMessage]> {
         var responses: [PostgreSQLMessage] = []
