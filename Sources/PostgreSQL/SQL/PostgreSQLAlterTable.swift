@@ -65,7 +65,7 @@ public struct PostgreSQLAlterTable: SQLAlterTable {
         }
         
         /// See `SQLSerializable`.
-        public func serialize(_ binds: inout [Encodable]) -> String {
+        public func serialize(_ binds: inout [Encodable], aliases: SQLTableAliases?) -> String {
             var sql: [String] = []
             sql.append("DROP")
             switch kind {
@@ -75,7 +75,7 @@ public struct PostgreSQLAlterTable: SQLAlterTable {
             if ifExists {
                 sql.append("IF EXISTS")
             }
-            sql.append(identifier.serialize(&binds))
+            sql.append(identifier.serialize(&binds, aliases: aliases))
             if let method = method {
                 switch method {
                 case .cascade: sql.append("CASCADE")
@@ -101,13 +101,13 @@ public struct PostgreSQLAlterTable: SQLAlterTable {
     }
     
     /// See `SQLSerializable`.
-    public func serialize(_ binds: inout [Encodable]) -> String {
+    public func serialize(_ binds: inout [Encodable], aliases: SQLTableAliases?) -> String {
         var sql: [String] = []
         sql.append("ALTER TABLE")
-        sql.append(table.serialize(&binds))
-        let actions = columns.map { "ADD COLUMN " + $0.serialize(&binds) }
-            + constraints.map { "ADD " + $0.serialize(&binds) }
-            + dropActions.map { $0.serialize(&binds) }
+        sql.append(table.serialize(&binds, aliases: aliases))
+        let actions = columns.map { "ADD COLUMN " + $0.serialize(&binds, aliases: aliases) }
+            + constraints.map { "ADD " + $0.serialize(&binds, aliases: aliases) }
+            + dropActions.map { $0.serialize(&binds, aliases: aliases) }
         sql.append(actions.joined(separator: ", "))
         return sql.joined(separator: " ")
     }

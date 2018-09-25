@@ -18,12 +18,12 @@ public struct PostgreSQLUpsert: SQLSerializable {
     public var values: [(Identifier, Expression)]
     
     /// See `SQLSerializable`.
-    public func serialize(_ binds: inout [Encodable]) -> String {
+    public func serialize(_ binds: inout [Encodable], aliases: SQLTableAliases?) -> String {
         var sql: [String] = []
         sql.append("ON CONFLICT")
-        sql.append("(" + columns.map { $0.identifier }.serialize(&binds) + ")")
+        sql.append("(" + columns.map { $0.identifier }.serialize(&binds, aliases: aliases) + ")")
         sql.append("DO UPDATE SET")
-        sql.append(values.map { $0.0.serialize(&binds) + " = " + $0.1.serialize(&binds) }.joined(separator: ", "))
+        sql.append(values.map { $0.0.serialize(&binds, aliases: aliases) + " = " + $0.1.serialize(&binds, aliases: aliases) }.joined(separator: ", "))
         return sql.joined(separator: " ")
     }
 }

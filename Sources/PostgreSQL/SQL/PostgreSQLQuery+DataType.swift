@@ -4,7 +4,7 @@ public struct PostgreSQLDataType: SQLDataType, Equatable {
     public static func == (lhs: PostgreSQLDataType, rhs: PostgreSQLDataType) -> Bool {
         // FIXME: more performant equatable is possible
         var binds: [Encodable] = []
-        return lhs.serialize(&binds) == rhs.serialize(&binds)
+        return lhs.serialize(&binds, aliases: nil) == rhs.serialize(&binds, aliases: nil)
     }
     
     /// See `SQLDataType`.
@@ -479,7 +479,7 @@ public struct PostgreSQLDataType: SQLDataType, Equatable {
         case custom(String)
         
         /// See `SQLSerializable`.
-        public func serialize(_ binds: inout [Encodable]) -> String {
+        public func serialize(_ binds: inout [Encodable], aliases: SQLTableAliases?) -> String {
             switch self {
             case .bigint: return "BIGINT"
             case .bigserial: return "BIGSERIAL"
@@ -574,11 +574,11 @@ public struct PostgreSQLDataType: SQLDataType, Equatable {
     }
     
     /// See `SQLSerializable`.
-    public func serialize(_ binds: inout [Encodable]) -> String {
+    public func serialize(_ binds: inout [Encodable], aliases: SQLTableAliases?) -> String {
         if isArray {
-            return primitive.serialize(&binds) + "[]"
+            return primitive.serialize(&binds, aliases: aliases) + "[]"
         } else {
-            return primitive.serialize(&binds)
+            return primitive.serialize(&binds, aliases: aliases)
         }
     }
 }
