@@ -19,14 +19,14 @@ public struct PostgreSQLColumn {
 extension PostgreSQLColumn: Hashable {
     /// See `Hashable`.
     public var hashValue: Int {
-        return tableOID.hashValue &+ name.hashValue &+ occurrence.hashValue
+        return tableOID.hashValue &+ occurrence.hashValue &+ name.hashValue
     }
 }
 
 extension PostgreSQLColumn: Equatable {
     /// See `Equatable`.
     public static func ==(lhs: PostgreSQLColumn, rhs: PostgreSQLColumn) -> Bool {
-        return lhs.tableOID == rhs.tableOID && lhs.name == rhs.name
+        return lhs.tableOID == rhs.tableOID && lhs.occurrence == rhs.occurrence && lhs.name == rhs.name
     }
 }
 
